@@ -9,39 +9,41 @@
   </style>
 </head>
 <body>
+
+
+
+
+
 <div class="content">
   <div class="header">
-    <b>{{title}}</b>
+    <H1>API Status</h1>
     <div id="span-controls" class="span-controls">
     </div>
   </div>
+
+
+<section id="app">
+
   <div class="container">
     <div class="stats-column">
-      <h5>CPU Usage</h5>
+      <h5>App CPU Usage</h5>
       <h1 id="cpuStat">- %</h1>
     </div>
     <div class="chart-container">
       <canvas id="cpuChart" width="400" height="100"></canvas>
     </div>
   </div>
+
   <div class="container">
     <div class="stats-column">
-      <h5>Memory Usage</h5>
+      <h5>App Memory Usage</h5>
       <h1 id="memStat">- %</h1>
     </div>
     <div class="chart-container">
       <canvas id="memChart" width="200" height="100"></canvas>
     </div>
   </div>
-  <div class="container">
-    <div class="stats-column">
-      <h5>One Minute Load Avg</h5>
-      <h1 id="loadStat">-</h1>
-    </div>
-    <div class="chart-container">
-      <canvas id="loadChart" width="200" height="100"></canvas>
-    </div>
-  </div>
+
   <div class="container">
     <div class="stats-column">
       <h5>Response Time</h5>
@@ -51,6 +53,7 @@
       <canvas id="responseTimeChart" width="200" height="100"></canvas>
     </div>
   </div>
+
   <div class="container">
     <div class="stats-column">
       <h5>Requests per Second</h5>
@@ -60,6 +63,7 @@
       <canvas id="rpsChart" width="200" height="100"></canvas>
     </div>
   </div>
+
   <div class="container">
     <div class="stats-column">
       <h5>Status Codes</h5>
@@ -72,6 +76,73 @@
       <canvas id="statusCodesChart" width="200" height="100"></canvas>
     </div>
   </div>
+
+</section>
+
+
+<section id="os">
+
+
+<div class="container">
+   <div class="stats-column">
+      <h5>System - Current CPU load %</h5>
+      <h1 id="osLoadPercentageStat">-</h1>
+    </div>
+    <div class="chart-container">
+      <canvas id="osLoadPercentageChart" width="200" height="100"></canvas>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="stats-column">
+      <h5>CPU - One Minute Load Avg</h5>
+      <h1 id="loadStat">-</h1>
+    </div>
+    <div class="chart-container">
+      <canvas id="loadChart" width="200" height="100"></canvas>
+    </div>
+  </div>
+
+    <div class="container">
+    <div class="stats-column">
+      <h5>OS Free Memory</h5>
+      <h1 id="osMemoryFreeStat">-</h1>
+    </div>
+    <div class="chart-container">
+      <canvas id="osMemoryFreeChart" width="200" height="100"></canvas>
+    </div>
+  </div>
+
+
+    <div class="container">
+    <div class="stats-column">
+      <h5>OS Used Memory</h5>
+      <h1 id="osMemoryUsedStat">-</h1>
+    </div>
+    <div class="chart-container">
+      <canvas id="osMemoryUsedChartX" width="200" height="100"></canvas>
+    </div>
+    </div>
+
+    <div class="container">
+    <div class="stats-column">
+      <h5>Node Event Loop Lag</h5>
+      <h1 id="osEventLoopLagStat">-</h1>
+    </div>
+    <div class="chart-container">
+      <canvas id="osEventLoopLagChart" width="200" height="100"></canvas>
+    </div>
+    </div>
+
+
+
+</section>
+
+
+
+
+
+
   <div class="footer">
     <p>Made with &#9829; with Socket.io & Chart.js</p>
   </div>

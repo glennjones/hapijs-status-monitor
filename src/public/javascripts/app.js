@@ -7,10 +7,12 @@ Chart.defaults.global.elements.line.backgroundColor = "rgba(0,0,0,0)";
 Chart.defaults.global.elements.line.borderColor = "rgba(0,0,0,0.9)";
 Chart.defaults.global.elements.line.borderWidth = 2;
 
+
 var socket = io(location.protocol + '//' + location.hostname + ':' + location.port);
 var defaultSpan = 0;
 var spans = [];
 var statusCodesColors = ['#75D701', '#47b8e0', '#ffc952', '#E53A40'];
+
 
 var defaultDataset = {
   label: '',
@@ -18,6 +20,7 @@ var defaultDataset = {
   lineTension: 0.2,
   pointRadius: 0
 };
+
 
 var defaultOptions = {
   scales: {
@@ -33,7 +36,8 @@ var defaultOptions = {
       },
       gridLines: {
         display: false
-      }
+      },
+      display: false
     }]
   },
   tooltips: {
@@ -43,6 +47,7 @@ var defaultOptions = {
   maintainAspectRatio: false,
   animation: false
 };
+
 
 var createChart = function (ctx, dataset) {
   return new Chart(ctx, {
@@ -59,18 +64,17 @@ var addTimestamp = function (point) {
   return point.timestamp;
 };
 
-var cpuDataset = [Object.create(defaultDataset)];
-var memDataset = [Object.create(defaultDataset)];
-var loadDataset = [Object.create(defaultDataset)];
-var responseTimeDataset = [Object.create(defaultDataset)];
-var rpsDataset = [Object.create(defaultDataset)];
-var statusCodesDataset = [Object.create(defaultDataset)];
 
 var cpuStat = document.getElementById('cpuStat');
 var memStat = document.getElementById('memStat');
 var loadStat = document.getElementById('loadStat');
 var responseTimeStat = document.getElementById('responseTimeStat');
 var rpsStat = document.getElementById('rpsStat');
+var osMemoryFreeStat = document.getElementById('osMemoryFreeStat');
+var osMemoryUsedStat = document.getElementById('osMemoryUsedStat');
+var osLoadPercentageStat = document.getElementById('osLoadPercentageStat');
+var osEventLoopLagStat = document.getElementById('osEventLoopLagStat');
+
 
 var cpuChartCtx = document.getElementById("cpuChart");
 var memChartCtx = document.getElementById("memChart");
@@ -78,12 +82,23 @@ var loadChartCtx = document.getElementById("loadChart");
 var responseTimeChartCtx = document.getElementById("responseTimeChart");
 var rpsChartCtx = document.getElementById("rpsChart");
 var statusCodesChartCtx = document.getElementById("statusCodesChart");
+var osMemoryFreeChartCtx = document.getElementById('osMemoryFreeChart');
+var osMemoryUsedChartCtx = document.getElementById('osMemoryUsedChartX');
+var osLoadPercentageChartCtx = document.getElementById('osLoadPercentageChart');
+var osEventLoopLagChartCtx = document.getElementById('osEventLoopLagChart');
 
-var cpuChart = createChart(cpuChartCtx, cpuDataset);
-var memChart = createChart(memChartCtx, memDataset);
-var loadChart = createChart(loadChartCtx, loadDataset);
-var responseTimeChart = createChart(responseTimeChartCtx, responseTimeDataset);
-var rpsChart = createChart(rpsChartCtx, rpsDataset);
+
+var cpuChart = createChart(cpuChartCtx, [clone(defaultDataset)]);
+var memChart = createChart(memChartCtx, [clone(defaultDataset)]);
+var loadChart = createChart(loadChartCtx, [clone(defaultDataset)]);
+var responseTimeChart = createChart(responseTimeChartCtx, [clone(defaultDataset)]);
+var rpsChart = createChart(rpsChartCtx, [clone(defaultDataset)]);
+var osMemoryFreeChart = createChart(osMemoryFreeChartCtx, [clone(defaultDataset)]);
+var osMemoryUsedChart = createChart(osMemoryUsedChartCtx, [clone(defaultDataset)]);
+var osLoadPercentageChart = createChart(osLoadPercentageChartCtx, [clone(defaultDataset)]);
+var osEventLoopLagChart = createChart(osEventLoopLagChartCtx, [clone(defaultDataset)]);
+
+
 var statusCodesChart = new Chart(statusCodesChartCtx, {
   type: 'line',
   data: {
@@ -102,7 +117,18 @@ statusCodesChart.data.datasets.forEach(function(dataset, index) {
   dataset.borderColor = statusCodesColors[index];
 });
 
-var charts = [cpuChart, memChart, loadChart, responseTimeChart, rpsChart, statusCodesChart];
+var charts = [
+  cpuChart,
+  memChart,
+  loadChart,
+  responseTimeChart,
+  rpsChart,
+  statusCodesChart,
+  osMemoryFreeChart,
+  osMemoryUsedChart,
+  osLoadPercentageChart,
+  osEventLoopLagChart
+];
 
 var onSpanChange = function (e) {
   e.target.classList.add('active');
@@ -119,6 +145,7 @@ var onSpanChange = function (e) {
 socket.on('start', function (data) {
   // Remove last element of Array because it contains malformed responses data.
   // To keep consistency we also remove os data.
+
   data[defaultSpan].responses.pop();
   data[defaultSpan].os.pop();
 
@@ -166,6 +193,20 @@ socket.on('start', function (data) {
   });
   responseTimeChart.data.labels = data[defaultSpan].responses.map(addTimestamp);
 
+
+  osMemoryFreeStat.textContent = '0Mb';
+  if (lastOsMetric) {
+    osMemoryFreeStat.textContent = lastOsMetric.load[defaultSpan].toFixed(2);
+  }
+  //osMemoryFreeChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+  osMemoryUsedStat.textContent = '0Mb';
+  if (lastOsMetric) {
+    osMemoryUsedStat.textContent = lastOsMetric.load[defaultSpan].toFixed(0);
+  }
+  //osMemoryUsedChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+
   for(var i = 0; i < 4; i++) {
     statusCodesChart.data.datasets[i].data = data[defaultSpan].responses.map(function (point) {
       return point[i+2];
@@ -206,6 +247,8 @@ socket.on('start', function (data) {
   }
 });
 
+
+
 socket.on('stats', function (data) {
   if (data.retention === spans[defaultSpan].retention && data.interval === spans[defaultSpan].interval) {
     var os = data.os;
@@ -231,6 +274,36 @@ socket.on('stats', function (data) {
       loadChart.data.datasets[0].data.push(os.load[0]);
       loadChart.data.labels.push(os.timestamp);
     }
+
+
+    osMemoryFreeStat.textContent = '0Mb';
+    if (os) {
+      osMemoryFreeStat.textContent = os.osMemory.free.toFixed(1) + 'Mb';
+      osMemoryFreeChart.data.datasets[0].data.push(os.osMemory.free);
+      osMemoryFreeChart.data.labels.push(os.timestamp);
+    }
+
+    osMemoryUsedStat.textContent = '0Gb';
+    if (os) {
+      osMemoryUsedStat.textContent = toGB(os.osMemory.used).toFixed(1) + 'Gb';
+      osMemoryUsedChart.data.datasets[0].data.push(os.osMemory.used);
+      osMemoryUsedChart.data.labels.push(os.timestamp);
+    }
+
+    osLoadPercentageStat.textContent = '0%';
+    if (os) {
+      osLoadPercentageStat.textContent = os.osLoad.currentload.toFixed(1) + '%';
+      osLoadPercentageChart.data.datasets[0].data.push(os.osLoad.currentload);
+      osLoadPercentageChart.data.labels.push(os.timestamp);
+    }
+
+    osEventLoopLagStat.textContent = '0ms';
+    if (os) {
+      osEventLoopLagStat.textContent = os.eventLoop.lag.toFixed(2) + 'ms';
+      osEventLoopLagChart.data.datasets[0].data.push(os.eventLoop.lag);
+      osEventLoopLagChart.data.labels.push(os.timestamp);
+    }
+
 
     responseTimeStat.textContent = '0.00ms';
     if (responses) {
@@ -266,3 +339,21 @@ socket.on('stats', function (data) {
     });
   }
 });
+
+
+function formatNumber(number) {
+  if(number){
+      number = number.toString();
+      return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }else{
+      return number;
+  }
+};
+
+function clone(obj){
+  return JSON.parse(JSON.stringify(obj))
+}
+
+function toGB(Mb){
+  return Mb / 1024
+}

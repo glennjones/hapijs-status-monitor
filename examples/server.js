@@ -1,5 +1,5 @@
 const Hapi = require('hapi');
-const hapijsStatusMonitor = require('hapijs-status-monitor');
+const hapijsStatusMonitor = require('../index.js');
 
 // Create a server with a host and port
 const server = new Hapi.Server();
